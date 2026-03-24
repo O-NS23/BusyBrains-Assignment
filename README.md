@@ -182,6 +182,12 @@ Recommended deployment split:
 - Frontend: Vercel or Netlify
 - Backend: Railway, Render, or another Java-capable host
 
+### Live URLs
+
+- Frontend: `https://busy-brains-assignment-five.vercel.app`
+- Backend: `https://busybrains-backend-production.up.railway.app`
+- Health check: `https://busybrains-backend-production.up.railway.app/api/health`
+
 Deployment files included in the repo:
 
 - `frontend/vercel.json`
