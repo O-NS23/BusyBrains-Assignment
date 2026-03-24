@@ -41,6 +41,7 @@ function App() {
 
           {/* OAuth2 SSO callback */}
           <Route path="/oauth-callback" element={<OAuthCallbackPage />} />
+          <Route path="/login/oauth-callback" element={<OAuthCallbackPage />} />
 
           {/* Protected routes (layout handles auth guard) */}
           <Route path="/dashboard" element={<AppLayout />} />

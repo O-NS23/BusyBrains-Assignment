@@ -26,7 +26,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -141,10 +143,11 @@ public class SecurityConfig {
 
                             User user = upsertOAuthUser(provider, oauthId, email, name);
                             String token = jwtUtils.generateToken(user);
-                            response.sendRedirect(frontendBaseUrl + "/oauth-callback?token=" + token);
+                            response.sendRedirect(buildFrontendUrl("/oauth-callback")
+                                    + "?token=" + token);
                         })
                         .failureHandler((request, response, exception) ->
-                                response.sendRedirect(frontendBaseUrl + "/login?error=sso"))
+                                response.sendRedirect(buildFrontendUrl("/login") + "?error=sso"))
                 )
                 .authenticationProvider(authenticationProvider());
 
@@ -210,5 +213,22 @@ public class SecurityConfig {
             }
         }
         return null;
+    }
+
+    private String buildFrontendUrl(String targetPath) {
+        URI baseUri = URI.create(frontendBaseUrl);
+        String normalizedPath = Optional.ofNullable(baseUri.getPath())
+                .filter(path -> !path.isBlank() && !"/".equals(path))
+                .map(path -> path.endsWith("/login") ? path.substring(0, path.length() - "/login".length()) : path)
+                .orElse("");
+
+        return UriComponentsBuilder.newInstance()
+                .scheme(baseUri.getScheme())
+                .host(baseUri.getHost())
+                .port(baseUri.getPort())
+                .path(normalizedPath)
+                .path(targetPath)
+                .build()
+                .toUriString();
     }
 }
