@@ -126,6 +126,7 @@ In Netlify:
 ## Backend Deployment
 
 The backend includes [backend/Dockerfile](D:\busybrains\backend\Dockerfile), which makes it easy to deploy to Render, Railway, or another container-friendly provider.
+For Render, the repo also includes [render.yaml](D:\busybrains\render.yaml) so you can create the backend service from the repository with the expected health check and environment variables.
 
 Minimum production env vars:
 
