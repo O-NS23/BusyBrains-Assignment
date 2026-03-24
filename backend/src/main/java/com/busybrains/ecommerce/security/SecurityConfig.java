@@ -27,8 +27,10 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Central Spring Security configuration.
@@ -52,7 +54,7 @@ public class SecurityConfig {
     private final UserRepository userRepository;
 
     @Value("${app.cors.allowed-origins}")
-    private String allowedOrigin;
+    private String allowedOrigins;
 
     @Value("${app.frontend.base-url}")
     private String frontendBaseUrl;
@@ -85,7 +87,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(allowedOrigin));
+        config.setAllowedOrigins(Arrays.stream(allowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isBlank())
+                .collect(Collectors.toList()));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

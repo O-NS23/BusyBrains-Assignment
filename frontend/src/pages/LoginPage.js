@@ -11,12 +11,33 @@ export default function LoginPage() {
     const [form, setForm] = useState({ username: '', password: '' });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [googleSsoConfigured, setGoogleSsoConfigured] = useState(true);
 
     useEffect(() => {
         if (searchParams.get('error') === 'sso') {
             setError('Single sign-on could not be completed. Please try again.');
         }
     }, [searchParams]);
+
+    useEffect(() => {
+        let mounted = true;
+
+        authAPI.ssoStatus()
+            .then(({ data }) => {
+                if (mounted) {
+                    setGoogleSsoConfigured(Boolean(data?.configured));
+                }
+            })
+            .catch(() => {
+                if (mounted) {
+                    setGoogleSsoConfigured(false);
+                }
+            });
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     const handleChange = (e) => {
         setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -136,7 +157,13 @@ export default function LoginPage() {
                     id="login-google"
                     className="btn btn-google w-full"
                     style={{ justifyContent: 'center' }}
-                    onClick={authAPI.googleLogin}
+                    onClick={() => {
+                        if (!googleSsoConfigured) {
+                            setError('Google SSO is not configured yet. Add a real Google client ID and secret, then restart the backend.');
+                            return;
+                        }
+                        authAPI.googleLogin();
+                    }}
                     type="button"
                 >
                     <svg width="18" height="18" viewBox="0 0 48 48">
@@ -147,6 +174,12 @@ export default function LoginPage() {
                     </svg>
                     Sign in with Google
                 </button>
+
+                {!googleSsoConfigured && (
+                    <p style={{ marginTop: '10px', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center' }}>
+                        Google OAuth is disabled locally until valid Google credentials are configured.
+                    </p>
+                )}
 
                 <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px', color: 'var(--text-secondary)' }}>
                     Don't have an account?{' '}

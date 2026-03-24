@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const API_BASE = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8081';
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -32,6 +32,7 @@ api.interceptors.response.use(
 export const authAPI = {
   login: (data) => api.post('/api/auth/login', data),
   register: (data) => api.post('/api/auth/register', data),
+  ssoStatus: () => api.get('/api/auth/sso/status'),
   googleLogin: () => { window.location.href = `${API_BASE}/oauth2/authorization/google`; },
 };
 
