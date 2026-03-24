@@ -1,27 +1,71 @@
 # BusyBrains E-Commerce Application
 
-This is a full-stack e-commerce application built with React and Spring Boot. It includes JWT authentication, Google OAuth2 / OpenID Connect SSO, role-based access control, product management, and user profile management.
+## Project Overview
+
+This project is a full-stack e-commerce web application built with:
+
+- React for the frontend
+- Spring Boot for the backend
+- Spring Security with JWT for local authentication
+- Google OAuth 2.0 / OpenID Connect for SSO
+- H2 database for local development
+
+The application supports:
+
+- User registration and login
+- Google single sign-on
+- Role-based access control for `ROLE_ADMIN` and `ROLE_USER`
+- Product listing similar to Amazon / Flipkart style dashboards
+- Admin-only product update and delete actions
+- User profile management, profile updates, and password changes
+
+## System Architecture
+
+The application follows a client-server architecture:
+
+User -> React frontend -> Spring Boot REST APIs -> Database
+
+Main components:
+
+- `frontend/`: React application
+- `backend/`: Spring Boot REST API
+- `database`: H2 for local development
+
+## Roles and Access
+
+Seeded users:
+
+| Username | Password | Role | Permissions |
+|----------|----------|------|-------------|
+| `admin` | `password` | `ROLE_ADMIN` | View, create, update, and delete products |
+| `user` | `password` | `ROLE_USER` | View products only |
+
+RBAC rules:
+
+- Admin can create, update, and delete products
+- User can only view products
+- Both authenticated users can manage their own profile
 
 ## Features
 
-- Local registration and login with JWT
+- JWT-based local authentication
 - Google SSO with OAuth2 / OIDC
-- Admin and User seeded accounts
-- Product catalog with search and category filtering
-- Admin-only create, update, and delete product actions
-- User profile view, update, and password change
-- Swagger UI for API testing
+- Role-based route and API protection
+- Product search and product catalog dashboard
+- Profile view and update
+- Password change
+- Swagger UI for API exploration
 
-## Seeded Users
+## Local Setup
 
-| Username | Password | Role | Access |
-|----------|----------|------|--------|
-| `admin` | `password` | `ROLE_ADMIN` | Full product CRUD and profile management |
-| `user` | `password` | `ROLE_USER` | View-only product access and profile management |
+### Prerequisites
 
-## Local Development
+- Java 17+
+- Maven 3.9+
+- Node.js 18+
+- npm
 
-### Backend
+### Backend Setup
 
 ```bash
 cd backend
@@ -31,9 +75,10 @@ mvn spring-boot:run
 Default local backend URL:
 
 - `http://localhost:8081`
-- Swagger: `http://localhost:8081/swagger-ui.html`
+- Swagger UI: `http://localhost:8081/swagger-ui.html`
+- Health check: `http://localhost:8081/api/health`
 
-### Frontend
+### Frontend Setup
 
 ```bash
 cd frontend
@@ -49,7 +94,7 @@ Default local frontend URL:
 
 ### Backend
 
-You can use these env vars locally or on your hosting provider:
+Supported backend environment variables:
 
 - `PORT`
 - `APP_FRONTEND_BASE_URL`
@@ -57,115 +102,122 @@ You can use these env vars locally or on your hosting provider:
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 - `APP_JWT_EXPIRATION_MS`
+- `SERVER_FORWARD_HEADERS_STRATEGY`
 
-Sample values are in [backend/.env.example](D:\busybrains\backend\.env.example).
+Example file:
+
+- `backend/.env.example`
 
 ### Frontend
 
+Supported frontend environment variables:
+
 - `REACT_APP_API_BASE_URL`
 
-Sample value is in [frontend/.env.example](D:\busybrains\frontend\.env.example).
+Example file:
 
-## Google OAuth Setup
+- `frontend/.env.example`
 
-Create a Google OAuth 2.0 Web Application and configure:
+## API Details
 
-- Authorized JavaScript origin for local dev:
-  - `http://localhost:3001`
-- Authorized redirect URI for local dev:
-  - `http://localhost:8081/login/oauth2/code/google`
+### Authentication APIs
 
-For production, add your deployed frontend domain as an authorized JavaScript origin and your deployed backend domain as an authorized redirect URI:
+- `POST /api/auth/register` -> register a new user
+- `POST /api/auth/login` -> login with username and password
+- `GET /api/auth/sso/status` -> check whether Google SSO is configured
+- `GET /oauth2/authorization/google` -> start Google sign-in
 
-- JavaScript origin example:
-  - `https://your-frontend.vercel.app`
-- Redirect URI example:
-  - `https://your-backend.onrender.com/login/oauth2/code/google`
+### Product APIs
 
-Do not commit your real Google client secret to GitHub.
+- `GET /api/products` -> view all products
+- `POST /api/products` -> create a product (`ROLE_ADMIN`)
+- `PUT /api/products/{id}` -> update a product (`ROLE_ADMIN`)
+- `DELETE /api/products/{id}` -> delete a product (`ROLE_ADMIN`)
 
-## Deployment Architecture
+### Profile APIs
 
-For a fully functional deployment, use:
+- `GET /api/profile` -> view current user profile
+- `PUT /api/profile` -> update current user profile
+- `PUT /api/profile/change-password` -> change current user password
 
-- Frontend on Vercel or Netlify
-- Backend on a Java-capable host such as Render or Railway
+### Utility APIs
 
-The frontend is static and deploys cleanly to Vercel or Netlify. The Spring Boot backend should be deployed separately and exposed over HTTPS, then the frontend should point to it with `REACT_APP_API_BASE_URL`.
+- `GET /api/health` -> health check
+- `GET /swagger-ui.html` -> Swagger documentation
 
-## Frontend Deployment
+## SSO Configuration
 
-### Vercel
+Create a Google OAuth 2.0 Web Application in Google Cloud Console.
 
-The frontend already includes [frontend/vercel.json](D:\busybrains\frontend\vercel.json) for SPA rewrites.
+### Local OAuth configuration
 
-In Vercel:
+Authorized JavaScript origins:
 
-1. Import the repo.
-2. Set the project root to `frontend`.
-3. Add env var:
-   - `REACT_APP_API_BASE_URL=https://your-backend-domain`
-4. Deploy.
+- `http://localhost:3001`
 
-### Netlify
+Authorized redirect URIs:
 
-The frontend already includes [frontend/netlify.toml](D:\busybrains\frontend\netlify.toml) for build settings and SPA routing.
+- `http://localhost:8081/login/oauth2/code/google`
 
-In Netlify:
+### Deployed OAuth configuration
 
-1. Import the repo.
-2. Set the base directory to `frontend`.
-3. Build command:
-   - `npm run build`
-4. Publish directory:
-   - `build`
-5. Add env var:
-   - `REACT_APP_API_BASE_URL=https://your-backend-domain`
-6. Deploy.
+Authorized JavaScript origins:
 
-## Backend Deployment
+- `https://your-frontend-domain`
 
-The backend includes [backend/Dockerfile](D:\busybrains\backend\Dockerfile), which makes it easy to deploy to Render, Railway, or another container-friendly provider.
-For Render, the repo also includes [render.yaml](D:\busybrains\render.yaml) so you can create the backend service from the repository with the expected health check and environment variables.
+Authorized redirect URIs:
 
-Minimum production env vars:
+- `https://your-backend-domain/login/oauth2/code/google`
 
-- `PORT`
+Production notes:
+
+- Do not commit your real Google client secret
+- On Railway or similar reverse-proxy hosts, set `SERVER_FORWARD_HEADERS_STRATEGY=framework`
+- `APP_FRONTEND_BASE_URL` must be the frontend root URL, not `/login`
+
+## Deployment
+
+Recommended deployment split:
+
+- Frontend: Vercel or Netlify
+- Backend: Railway, Render, or another Java-capable host
+
+Deployment files included in the repo:
+
+- `frontend/vercel.json`
+- `frontend/netlify.toml`
+- `backend/Dockerfile`
+- `render.yaml`
+
+### Frontend deployment
+
+Set:
+
+- `REACT_APP_API_BASE_URL=https://your-backend-domain`
+
+### Backend deployment
+
+Set:
+
 - `APP_FRONTEND_BASE_URL=https://your-frontend-domain`
 - `APP_CORS_ALLOWED_ORIGINS=https://your-frontend-domain`
 - `GOOGLE_CLIENT_ID=...`
 - `GOOGLE_CLIENT_SECRET=...`
 
-If you deploy the backend publicly and use Google SSO, add this exact redirect URI in Google Cloud:
-
-- `https://your-backend-domain/login/oauth2/code/google`
-
-## GitHub Push To Another Account
-
-If you want to push this code to another GitHub account:
-
-```bash
-git remote remove origin
-git remote add origin https://github.com/YOUR-OTHER-ACCOUNT/YOUR-REPO.git
-git add .
-git commit -m "Prepare BusyBrains app for deployment"
-git push -u origin main
-```
-
-If your current root repo still has nested Git history under `frontend`, use the clean submission copy instead:
-
-- `D:\busybrains-submission`
-
-## Verification
+## Verification and Testing
 
 Verified locally:
 
-- Backend packaging: `mvn -q package`
-- Frontend tests: `npm test -- --watchAll=false`
-- Frontend build: `npm run build`
-- Admin login and product CRUD
-- User login and RBAC restrictions
-- Profile update and password change
+- `mvn -q package`
+- `npm test -- --watchAll=false`
+- `npm run build`
+- Admin login works
+- User login works
+- Admin product CRUD works
+- User product modification is blocked by RBAC
+- Profile update works
+- Password change works
+- Google SSO flow is implemented and deployment-ready
 
 ## Project Structure
 
@@ -180,5 +232,6 @@ busybrains/
 |   |-- vercel.json
 |   |-- package.json
 |   `-- src/
+|-- render.yaml
 `-- README.md
 ```
